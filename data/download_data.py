@@ -69,7 +69,7 @@ def download_batch(images, output_dir, max_workers=8):
     return failed_downloads
 
 
-input_dir = "Yoga-82/filtered_yoga_dataset_links"
-output_dir = "dataset"
+input_dir = "data/Yoga-82/filtered_yoga_dataset_links"
+output_dir = "data/dataset"
 
 download_images(input_dir, output_dir)

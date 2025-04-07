@@ -1,6 +1,8 @@
 import os
+import cv2
 import requests
 from urllib.parse import urlparse
+from PIL import Image
 
 
 def is_valid_url(url: str, unreliable_domains: dict) -> bool:
@@ -70,9 +72,27 @@ def create_filtered_dataset(original_dir: str, output_dir: str, finished_dir: st
 
     print("DONE")
 
-original_dir = "Yoga-82/yoga_dataset_links"
-output_dir = "Yoga-82/filtered_yoga_dataset_links"
-finished_dir = "Yoga-82/finished_dataset_links"
+
+def remove_bad_images(directory: str) -> None:
+    for pose in os.listdir(directory):
+        if not os.path.isdir(f'{directory}/{pose}'):
+            continue
+
+        for image in os.listdir(f'{directory}/{pose}'):
+            try:
+                with Image.open(f'{directory}/{pose}/{image}') as img:
+                    img.verify()
+            except Exception as e:
+                print(f"Corrupted image removed: {directory}/{pose}/{image}")
+                os.remove(f'{directory}/{pose}/{image}')
+
+
+original_dir = "data/Yoga-82/yoga_dataset_links"
+output_dir = "data/Yoga-82/filtered_yoga_dataset_links"
+finished_dir = "data/Yoga-82/finished_dataset_links"
 
 create_filtered_dataset(original_dir, output_dir, finished_dir)
 
+# remove_bad_images("data/dataset/train")
+# remove_bad_images("data/dataset/val")
+# remove_bad_images("data/dataset/test")
