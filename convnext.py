@@ -53,18 +53,18 @@ class ConvNeXt(nn.Module):
         super().__init__()
 
         # patchified stem
-        self.stem = nn.Conv2d(in_channels=3, out_channels=96, kernel_size=4, stride=4, padding=3)
+        self.stem = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=4, stride=4, padding=3)
 
-        self.stage1 = self.stage(96, 96, layer_distribution[0], False)
-        self.stage2 = self.stage(96, 192, layer_distribution[1], True)
-        self.stage3 = self.stage(192, 384, layer_distribution[2], True)
-        self.stage4 = self.stage(384, 768, layer_distribution[3], True)
+        self.stage1 = self.stage(64, 64, layer_distribution[0], False)
+        self.stage2 = self.stage(64, 128, layer_distribution[1], True)
+        self.stage3 = self.stage(128, 256, layer_distribution[2], True)
+        self.stage4 = self.stage(256, 512, layer_distribution[3], True)
 
         self.gblavgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.bn1 = nn.BatchNorm2d(768)
+        self.bn1 = nn.BatchNorm2d(512)
 
-        self.fc1 = nn.Linear(in_features=768, out_features=32)
-        self.fc2 = nn.Linear(in_features=32, out_features=num_classes)
+        self.fc1 = nn.Linear(in_features=512, out_features=num_classes)
+        # self.fc2 = nn.Linear(in_features=32, out_features=num_classes)
 
 
     def stage(self, in_channels, out_channels, num_layers, downsample):
@@ -96,7 +96,7 @@ class ConvNeXt(nn.Module):
         x = torch.flatten(x, start_dim=1)
 
         x = self.fc1(x)
-        x = self.fc2(x)
+        # x = self.fc2(x)
 
         return x
 

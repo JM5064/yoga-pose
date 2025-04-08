@@ -18,7 +18,7 @@ from convnext import ConvNeXt
 random.seed(0)
 
 transform = transforms.Compose([
-    transforms.Resize((256, 256)),
+    transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225]),
@@ -30,9 +30,9 @@ test_dataset = datasets.ImageFolder('data/dataset/test', transform=transform)
 
 batch_size = 32
 
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False ,num_workers=2)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False ,num_workers=2)
 
 
 def to_device(obj):
@@ -96,6 +96,7 @@ def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, op
 
 
 model = ConvNeXt(layer_distribution=[3,3,9,3], num_classes=81)
+model = to_device(model)
 adamW_params = {
     "lr": 1e-3,
     "weight_decay": 1e-2,
@@ -103,4 +104,5 @@ adamW_params = {
     "eps": 1e-8
 }
 
-train(model, 1, train_loader, val_loader, optimizer_params=adamW_params)
+train(model, num_epochs=1, train_loader=train_loader, val_loader=val_loader, optimizer_params=adamW_params)
+torch.save(model.state_dict(), 'model.pth')
