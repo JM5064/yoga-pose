@@ -2,6 +2,7 @@ import random
 import os
 from PIL import Image
 from tqdm import tqdm
+from datetime import datetime
 
 import torch
 import torch.nn as nn
@@ -42,10 +43,17 @@ def to_device(obj):
     return obj
 
 
-def validate(model, val_loader):
+def log_results(file, acc, precision, recall, f1, average_train_loss, average_val_loss):
+    file.write(f'Train Loss: {average_train_loss}\tValidation Loss: {average_val_loss}\t')
+    file.write(f'Accuracy: {acc}\tPrecision: {precision}\tRecall: {recall}\tF1-score: {f1}')
+    file.write('\n')
+
+
+def validate(model, val_loader, loss_func):
     model.eval()
     all_preds = []
     all_labels = []
+    running_loss = 0.0
 
     with torch.no_grad():
         for inputs, labels in tqdm(val_loader):
@@ -53,32 +61,32 @@ def validate(model, val_loader):
             labels = to_device(labels)
 
             outputs = model(inputs)
+            loss = loss_func(outputs, labels)
+            running_loss += loss.item()
+
             _, predictions = torch.max(outputs, 1)
 
             all_preds.extend(predictions.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
 
+    average_val_loss = running_loss / len(val_loader)
     acc = accuracy_score(all_labels, all_preds)
     precision, recall, f1, _ = precision_recall_fscore_support(all_labels, all_preds, average='weighted')
 
-    metrics = {
-        'accuracy': acc,
-        'precision': precision,
-        'recall': recall,
-        'f1': f1
-    }
-        
-    return metrics
+    return acc, precision, recall, f1, average_val_loss
 
 
-def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, optimizer_params=None):
+def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, optimizer_params=None, log_dir="logs"):
+    logfile = open(log_dir + "/" + datetime.now(), "a")
+
     loss_func = nn.CrossEntropyLoss()
-    optimizer = optimizer(model.parameters(), **optimizer_params)
+    optimizer = optimizer(filter(lambda p: p.requires_grad, model.parameters()), **optimizer_params)
 
     for i in range(num_epochs):
         print(f'Epoch {i+1}/{num_epochs}')
 
         model.train()
+        running_loss = 0.0
         for inputs, labels in tqdm(train_loader):
             inputs = to_device(inputs)
             labels = to_device(labels)
@@ -90,9 +98,15 @@ def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, op
             loss.backward()
             optimizer.step()
 
-        metrics = validate(model, val_loader)
-        print(f'Epoch {i+1}:')
-        print(metrics)
+            running_loss += loss.item()
+
+        average_train_loss = running_loss / len(train_loader)
+        acc, precision, recall, f1, average_val_loss = validate(model, val_loader, loss_func)
+        print(f'Epoch {i+1} Results:')
+        print(f'Train Loss: {average_train_loss}\tValidation Loss: {average_val_loss}')
+        print(f'Accuracy: {acc}\tPrecision: {precision}\tRecall: {recall}\tF1-score: {f1}')
+
+        log_results(logfile, acc, precision, recall, f1, average_train_loss, average_val_loss)
 
 
 model = ConvNeXt(layer_distribution=[3,3,9,3], num_classes=81)
