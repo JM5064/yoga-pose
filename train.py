@@ -56,8 +56,11 @@ def validate(model, val_loader, loss_func):
     return acc, precision, recall, f1, average_val_loss
 
 
-def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, optimizer_params=None, log_dir="logs"):
-    logfile = open(log_dir + "/" + str(datetime.now()), "a")
+def train(model, num_epochs, train_loader, val_loader, test_loader, optimizer=optim.AdamW, optimizer_params=None, runs_dir="./runs"):
+    time = str(datetime.now())
+    os.mkdir(runs_dir + "/" + time)
+    logfile = open(runs_dir + "/" + time + "/metrics.txt", "a")
+    best_accuracy = 0.0
 
     loss_func = nn.CrossEntropyLoss()
     optimizer = optimizer(filter(lambda p: p.requires_grad, model.parameters()), **optimizer_params)
@@ -88,6 +91,17 @@ def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, op
 
         log_results(logfile, acc, precision, recall, f1, average_train_loss, average_val_loss)
 
+        if acc > best_accuracy:
+            torch.save(model.state_dict(), runs_dir + "/" + time + "/best.pt")
+            best_accuracy = acc
+
+        torch.save(model.state_dict(), runs_dir + "/" + time + "/last.pt")
+
+    acc, precision, recall, f1, average_test_loss = validate(model, test_loader, loss_func)
+    print("Testing Results")
+    print(f'Accuracy: {acc}\tPrecision: {precision}\tRecall: {recall}\tF1-score: {f1}')
+    print(f'Test Loss: {average_test_loss}')
+
 
 if __name__ == "__main__":
     random.seed(0)
@@ -99,9 +113,9 @@ if __name__ == "__main__":
                             std=[0.229, 0.224, 0.225]),
     ])
 
-    train_dataset = datasets.ImageFolder('data/dataset/train', transform=transform)
-    val_dataset = datasets.ImageFolder('data/dataset/val', transform=transform)
-    test_dataset = datasets.ImageFolder('data/dataset/test', transform=transform)
+    train_dataset = datasets.ImageFolder('./data/dataset/train', transform=transform)
+    val_dataset = datasets.ImageFolder('./data/dataset/val', transform=transform)
+    test_dataset = datasets.ImageFolder('./data/dataset/test', transform=transform)
 
     batch_size = 32
 

@@ -21,13 +21,9 @@ transform = transforms.Compose([
 ])
 
 
-num_epochs = 5
-learning_rate = 1e-4
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-train_dataset = datasets.ImageFolder("data/yoga16-dataset/train", transform=transform)
-val_dataset   = datasets.ImageFolder("data/yoga16-dataset/val", transform=transform)
-test_dataset = datasets.ImageFolder('data/yoga16-dataset/test', transform=transform)
+train_dataset = datasets.ImageFolder("./data/yoga16-dataset/train", transform=transform)
+val_dataset   = datasets.ImageFolder("./data/yoga16-dataset/val", transform=transform)
+test_dataset = datasets.ImageFolder('./data/yoga16-dataset/test', transform=transform)
 
 batch_size = 32  # try 28?
 
@@ -54,6 +50,7 @@ adamW_params = {
     "betas": (0.9, 0.999),
     "eps": 1e-8
 }
-train(model, 5, train_loader, val_loader, optimizer_params=adamW_params)
 
-torch.save(model.state_dict(), "mobilenet_yoga.pt")
+
+train(model, 5, train_loader, val_loader, test_loader, optimizer_params=adamW_params)
+
