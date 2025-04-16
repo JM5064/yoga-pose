@@ -77,7 +77,7 @@ def validate(model, val_loader, loss_func):
 
 
 def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, optimizer_params=None, log_dir="logs"):
-    logfile = open(log_dir + "/" + datetime.now(), "a")
+    logfile = open(log_dir + "/" + str(datetime.now()), "a")
 
     loss_func = nn.CrossEntropyLoss()
     optimizer = optimizer(filter(lambda p: p.requires_grad, model.parameters()), **optimizer_params)
