@@ -109,14 +109,15 @@ def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, op
         log_results(logfile, acc, precision, recall, f1, average_train_loss, average_val_loss)
 
 
-model = ConvNeXt(layer_distribution=[3,3,9,3], num_classes=81)
-model = to_device(model)
-adamW_params = {
-    "lr": 1e-3,
-    "weight_decay": 1e-2,
-    "betas": (0.9, 0.999),
-    "eps": 1e-8
-}
+if __name__ == "__main__":
+    model = ConvNeXt(layer_distribution=[3,3,9,3], num_classes=81)
+    model = to_device(model)
+    adamW_params = {
+        "lr": 1e-3,
+        "weight_decay": 1e-2,
+        "betas": (0.9, 0.999),
+        "eps": 1e-8
+    }
 
-train(model, num_epochs=1, train_loader=train_loader, val_loader=val_loader, optimizer_params=adamW_params)
-torch.save(model.state_dict(), 'model.pth')
+    train(model, num_epochs=1, train_loader=train_loader, val_loader=val_loader, optimizer_params=adamW_params)
+    torch.save(model.state_dict(), 'model.pth')
