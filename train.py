@@ -16,26 +16,6 @@ from torchvision import transforms, datasets
 from convnext import ConvNeXt
 
 
-random.seed(0)
-
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225]),
-])
-
-train_dataset = datasets.ImageFolder('data/dataset/train', transform=transform)
-val_dataset = datasets.ImageFolder('data/dataset/val', transform=transform)
-test_dataset = datasets.ImageFolder('data/dataset/test', transform=transform)
-
-batch_size = 32
-
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False ,num_workers=2)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False ,num_workers=2)
-
-
 def to_device(obj):
     if torch.cuda.is_available():
         obj = obj.to("cuda")
@@ -110,6 +90,26 @@ def train(model, num_epochs, train_loader, val_loader, optimizer=optim.AdamW, op
 
 
 if __name__ == "__main__":
+    random.seed(0)
+
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                            std=[0.229, 0.224, 0.225]),
+    ])
+
+    train_dataset = datasets.ImageFolder('data/dataset/train', transform=transform)
+    val_dataset = datasets.ImageFolder('data/dataset/val', transform=transform)
+    test_dataset = datasets.ImageFolder('data/dataset/test', transform=transform)
+
+    batch_size = 32
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False ,num_workers=2)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False ,num_workers=2)
+    
+
     model = ConvNeXt(layer_distribution=[3,3,9,3], num_classes=81)
     model = to_device(model)
     adamW_params = {
