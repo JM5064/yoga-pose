@@ -44,7 +44,6 @@ def compute_class_weights(train_dir_path):
         total += counts[pose]
 
     classes.sort()
-    print(classes)
     weights = [total / (len(classes) * counts[pose]) for pose in classes]
     
     return torch.tensor(weights, dtype=torch.float)
@@ -118,16 +117,17 @@ def train(model, num_epochs, train_loader, val_loader, test_loader, loss_func=nn
         # print and log metrics
         average_train_loss = running_loss / len(train_loader)
         metrics = validate(model, val_loader, loss_func)
-        acc = metrics["accuracy"]
+        metrics["average_train_loss"] = average_train_loss
         del metrics["confusion_matrix"]
 
         print(f'Epoch {i+1} Results:')
         print(f'Train Loss: {average_train_loss}\tValidation Loss: {metrics["average_val_loss"]}')
-        print(f'Accuracy: {metrics["acc"]}\tPrecision: {metrics["precision"]}\tRecall: {metrics["recall"]}\tF1-score: {metrics["f1"]}')
+        print(f'Accuracy: {metrics["accuracy"]}\tPrecision: {metrics["precision"]}\tRecall: {metrics["recall"]}\tF1-score: {metrics["f1"]}')
 
         log_results(logfile, metrics)
 
         # save best model
+        acc = metrics["accuracy"]
         if acc > best_accuracy:
             torch.save(model.state_dict(), runs_dir + "/" + time + "/best.pt")
             best_accuracy = acc
@@ -138,7 +138,7 @@ def train(model, num_epochs, train_loader, val_loader, test_loader, loss_func=nn
     print("Testing Model")
     metrics = validate(model, test_loader, loss_func)
     print("Testing Results")
-    print(f'Accuracy: {metrics["acc"]}\tPrecision: {metrics["precision"]}\tRecall: {metrics["recall"]}\tF1-score: {metrics["f1"]}')
+    print(f'Accuracy: {metrics["accuracy"]}\tPrecision: {metrics["precision"]}\tRecall: {metrics["recall"]}\tF1-score: {metrics["f1"]}')
     print(f'Test Loss: {metrics["average_val_loss"]}')
 
     test_logfile = open(runs_dir + "/" + time + "/test_metrics.txt", "a")

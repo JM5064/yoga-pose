@@ -60,7 +60,7 @@ adamW_params = {
     "eps": 1e-8
 }
 
-class_weights = compute_class_weights(dataset_path + "train")
+class_weights = to_device(compute_class_weights(dataset_path + "train"))
 
-train(model, 15, train_loader, val_loader, test_loader, loss_func=nn.CrossEntropyLoss(weight=class_weights) ,optimizer_params=adamW_params)
+train(model, 15, train_loader, val_loader, test_loader, loss_func=nn.CrossEntropyLoss(weight=class_weights), optimizer_params=adamW_params)
 
