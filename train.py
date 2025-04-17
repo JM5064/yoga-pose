@@ -97,10 +97,14 @@ def train(model, num_epochs, train_loader, val_loader, test_loader, optimizer=op
 
         torch.save(model.state_dict(), runs_dir + "/" + time + "/last.pt")
 
+    print("Testing Model")
     acc, precision, recall, f1, average_test_loss = validate(model, test_loader, loss_func)
     print("Testing Results")
     print(f'Accuracy: {acc}\tPrecision: {precision}\tRecall: {recall}\tF1-score: {f1}')
     print(f'Test Loss: {average_test_loss}')
+
+    test_logfile = open(runs_dir + "/" + time + "/test_metrics.txt", "a")
+    log_results(test_logfile, acc, precision, recall, f1, average_test_loss, average_test_loss)
 
 
 if __name__ == "__main__":

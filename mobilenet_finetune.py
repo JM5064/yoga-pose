@@ -59,5 +59,5 @@ adamW_params = {
     "eps": 1e-8
 }
 
-train(model, 5, train_loader, val_loader, test_loader, optimizer_params=adamW_params)
+train(model, 15, train_loader, val_loader, test_loader, optimizer_params=adamW_params)
 
