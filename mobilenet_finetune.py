@@ -28,10 +28,11 @@ test_transform = transforms.Compose([
                          std=[0.229, 0.224, 0.225]),
 ])
 
+dataset_path = "./data/yoga16-dataset/"
 
-train_dataset = datasets.ImageFolder("./data/yoga16-dataset/train", transform=train_transform)
-val_dataset = datasets.ImageFolder("./data/yoga16-dataset/val", transform=test_transform)
-test_dataset = datasets.ImageFolder('./data/yoga16-dataset/test', transform=test_transform)
+train_dataset = datasets.ImageFolder(dataset_path + "train", transform=train_transform)
+val_dataset = datasets.ImageFolder(dataset_path + "val", transform=test_transform)
+test_dataset = datasets.ImageFolder(dataset_path + "test", transform=test_transform)
 
 batch_size = 32
 
@@ -59,7 +60,7 @@ adamW_params = {
     "eps": 1e-8
 }
 
-class_weights = compute_class_weights("./data/dataset-16/train")
+class_weights = compute_class_weights(dataset_path + "train")
 
 train(model, 15, train_loader, val_loader, test_loader, loss_func=nn.CrossEntropyLoss(weight=class_weights) ,optimizer_params=adamW_params)
 
