@@ -133,5 +133,5 @@ if __name__ == "__main__":
         "eps": 1e-8
     }
 
-    train(model, num_epochs=1, train_loader=train_loader, val_loader=val_loader, optimizer_params=adamW_params)
+    train(model, num_epochs=1, train_loader=train_loader, val_loader=val_loader, test_loader=test_loader, optimizer_params=adamW_params)
     torch.save(model.state_dict(), 'model.pth')

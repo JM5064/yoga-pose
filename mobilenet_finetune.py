@@ -13,7 +13,15 @@ from train import train
 
 random.seed(0)
 
-transform = transforms.Compose([
+train_transform = transforms.Compose([
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
+])
+
+test_transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -21,11 +29,11 @@ transform = transforms.Compose([
 ])
 
 
-train_dataset = datasets.ImageFolder("./data/yoga16-dataset/train", transform=transform)
-val_dataset   = datasets.ImageFolder("./data/yoga16-dataset/val", transform=transform)
-test_dataset = datasets.ImageFolder('./data/yoga16-dataset/test', transform=transform)
+train_dataset = datasets.ImageFolder("./data/yoga16-dataset/train", transform=train_transform)
+val_dataset = datasets.ImageFolder("./data/yoga16-dataset/val", transform=test_transform)
+test_dataset = datasets.ImageFolder('./data/yoga16-dataset/test', transform=test_transform)
 
-batch_size = 32  # try 28?
+batch_size = 32
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=1)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=1)
@@ -50,7 +58,6 @@ adamW_params = {
     "betas": (0.9, 0.999),
     "eps": 1e-8
 }
-
 
 train(model, 5, train_loader, val_loader, test_loader, optimizer_params=adamW_params)
 
