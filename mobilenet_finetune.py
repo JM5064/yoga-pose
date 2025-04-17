@@ -8,7 +8,7 @@ import torchvision
 from torchvision import transforms, datasets
 from torchvision import models
 
-from train import train
+from train import train, compute_class_weights
 
 
 random.seed(0)
@@ -59,5 +59,7 @@ adamW_params = {
     "eps": 1e-8
 }
 
-train(model, 15, train_loader, val_loader, test_loader, optimizer_params=adamW_params)
+class_weights = compute_class_weights("./data/dataset-16/train")
+
+train(model, 15, train_loader, val_loader, test_loader, loss_func=nn.CrossEntropyLoss(weight=class_weights) ,optimizer_params=adamW_params)
 

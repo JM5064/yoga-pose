@@ -29,6 +29,27 @@ def log_results(file, acc, precision, recall, f1, average_train_loss, average_va
     file.write('\n')
 
 
+def compute_class_weights(train_dir_path):
+    counts = {}
+    classes = []
+    total = 0
+
+    for pose in os.listdir(train_dir_path):
+        if not os.path.isdir(f'{train_dir_path}/{pose}'):
+            continue
+        
+        counts[pose] = len(os.listdir(f'{train_dir_path}/{pose}'))
+        classes.append(pose)
+        total += counts[pose]
+
+    classes.sort()
+    print(classes)
+    weights = [total / (len(classes) * counts[pose]) for pose in classes]
+    
+    return torch.tensor(weights, dtype=torch.float)
+    
+
+
 def validate(model, val_loader, loss_func):
     model.eval()
     all_preds = []
@@ -56,13 +77,12 @@ def validate(model, val_loader, loss_func):
     return acc, precision, recall, f1, average_val_loss
 
 
-def train(model, num_epochs, train_loader, val_loader, test_loader, optimizer=optim.AdamW, optimizer_params=None, runs_dir="./runs"):
+def train(model, num_epochs, train_loader, val_loader, test_loader, loss_func=nn.CrossEntropyLoss(), optimizer=optim.AdamW, optimizer_params=None, runs_dir="./runs"):
     time = str(datetime.now())
     os.mkdir(runs_dir + "/" + time)
     logfile = open(runs_dir + "/" + time + "/metrics.txt", "a")
     best_accuracy = 0.0
 
-    loss_func = nn.CrossEntropyLoss()
     optimizer = optimizer(filter(lambda p: p.requires_grad, model.parameters()), **optimizer_params)
 
     for i in range(num_epochs):
