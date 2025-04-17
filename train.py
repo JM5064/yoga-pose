@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix
 
 import torchvision
 from torchvision import transforms, datasets
@@ -23,9 +23,10 @@ def to_device(obj):
     return obj
 
 
-def log_results(file, acc, precision, recall, f1, average_train_loss, average_val_loss):
-    file.write(f'Train Loss: {average_train_loss}\tValidation Loss: {average_val_loss}\t')
-    file.write(f'Accuracy: {acc}\tPrecision: {precision}\tRecall: {recall}\tF1-score: {f1}')
+def log_results(file, metrics):
+    for metric in metrics:
+        file.write(f'{metric}: {metrics[metric]}\t')
+
     file.write('\n')
 
 
@@ -48,7 +49,6 @@ def compute_class_weights(train_dir_path):
     
     return torch.tensor(weights, dtype=torch.float)
     
-
 
 def validate(model, val_loader, loss_func):
     model.eval()
@@ -73,11 +73,22 @@ def validate(model, val_loader, loss_func):
     average_val_loss = running_loss / len(val_loader)
     acc = accuracy_score(all_labels, all_preds)
     precision, recall, f1, _ = precision_recall_fscore_support(all_labels, all_preds, average='weighted')
+    conf_matrix = confusion_matrix(all_labels, all_preds)
 
-    return acc, precision, recall, f1, average_val_loss
+    metrics = {
+        "accuracy": acc,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "average_val_loss": average_val_loss,
+        "confusion_matrix": conf_matrix
+    }
+
+    return metrics
 
 
 def train(model, num_epochs, train_loader, val_loader, test_loader, loss_func=nn.CrossEntropyLoss(), optimizer=optim.AdamW, optimizer_params=None, runs_dir="./runs"):
+    # create log file
     time = str(datetime.now())
     os.mkdir(runs_dir + "/" + time)
     logfile = open(runs_dir + "/" + time + "/metrics.txt", "a")
@@ -85,6 +96,7 @@ def train(model, num_epochs, train_loader, val_loader, test_loader, loss_func=nn
 
     optimizer = optimizer(filter(lambda p: p.requires_grad, model.parameters()), **optimizer_params)
 
+    # training loop
     for i in range(num_epochs):
         print(f'Epoch {i+1}/{num_epochs}')
 
@@ -103,28 +115,34 @@ def train(model, num_epochs, train_loader, val_loader, test_loader, loss_func=nn
 
             running_loss += loss.item()
 
+        # print and log metrics
         average_train_loss = running_loss / len(train_loader)
-        acc, precision, recall, f1, average_val_loss = validate(model, val_loader, loss_func)
+        metrics = validate(model, val_loader, loss_func)
+        acc = metrics["accuracy"]
+        del metrics["confusion_matrix"]
+
         print(f'Epoch {i+1} Results:')
-        print(f'Train Loss: {average_train_loss}\tValidation Loss: {average_val_loss}')
-        print(f'Accuracy: {acc}\tPrecision: {precision}\tRecall: {recall}\tF1-score: {f1}')
+        print(f'Train Loss: {average_train_loss}\tValidation Loss: {metrics["average_val_loss"]}')
+        print(f'Accuracy: {metrics["acc"]}\tPrecision: {metrics["precision"]}\tRecall: {metrics["recall"]}\tF1-score: {metrics["f1"]}')
 
-        log_results(logfile, acc, precision, recall, f1, average_train_loss, average_val_loss)
+        log_results(logfile, metrics)
 
+        # save best model
         if acc > best_accuracy:
             torch.save(model.state_dict(), runs_dir + "/" + time + "/best.pt")
             best_accuracy = acc
 
         torch.save(model.state_dict(), runs_dir + "/" + time + "/last.pt")
 
+    # test model and print/log testing metrics
     print("Testing Model")
-    acc, precision, recall, f1, average_test_loss = validate(model, test_loader, loss_func)
+    metrics = validate(model, test_loader, loss_func)
     print("Testing Results")
-    print(f'Accuracy: {acc}\tPrecision: {precision}\tRecall: {recall}\tF1-score: {f1}')
-    print(f'Test Loss: {average_test_loss}')
+    print(f'Accuracy: {metrics["acc"]}\tPrecision: {metrics["precision"]}\tRecall: {metrics["recall"]}\tF1-score: {metrics["f1"]}')
+    print(f'Test Loss: {metrics["average_val_loss"]}')
 
     test_logfile = open(runs_dir + "/" + time + "/test_metrics.txt", "a")
-    log_results(test_logfile, acc, precision, recall, f1, average_test_loss, average_test_loss)
+    log_results(test_logfile, metrics)
 
 
 if __name__ == "__main__":
