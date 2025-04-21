@@ -72,7 +72,7 @@ def get_topk_predictions(model, image, k, transform, device):
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = models.mobilenet_v2()
-    model_path = "models/mobilenet_16_1.5e-3_e-4_nobal.pt"
+    model_path = "models/mobilenet_15_e-3_e-4.pt"
     load_model(model, model_path, device, 12)
 
     transform = transforms.Compose([
