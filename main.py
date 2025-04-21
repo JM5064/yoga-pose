@@ -9,6 +9,18 @@ import time
 import threading
 import random
 
+from pose_recommender import PoseRecommender
+
+valid_modes = ["Standing-Only", "Hard", "Class"]
+print("Available modes:", ", ".join(valid_modes))
+selected_mode = input("Enter the mode you'd like to use: ").strip()
+
+while selected_mode not in valid_modes:
+    print("Invalid mode. Please choose from:", ", ".join(valid_modes))
+    selected_mode = input("Enter the mode you'd like to use: ").strip()
+
+pose_manager = PoseRecommender(mode=selected_mode)
+
 
 def get_next_pose(curr_pose: int) -> int:
     return random.randint(0, 11)
@@ -72,6 +84,9 @@ if __name__ == "__main__":
     ])
 
     classes = ["Boat Pose", "Chair Pose", "Child Pose", "Downward Facing Dog", "Fish Pose", "Lord of the Dance Pose", "Side Plank Pose", "Sitting Pose", "Tree Pose", "Warrior 3", "Warrior 2", "Warrior 1"]
+        
+    index_to_class = {i: name for i, name in enumerate(classes)}
+    class_to_index = {name: i for i, name in enumerate(classes)}
 
     cap = cv2.VideoCapture(0)
 
@@ -117,7 +132,9 @@ if __name__ == "__main__":
 
         achieved = achieved_pose(curr_pose, predicted_poses, recent_poses, 5)
         if achieved and not waiting:
-            next_pose = get_next_pose(curr_pose)
+            curr_pose_name = index_to_class[curr_pose]
+            next_pose_name = pose_manager.get_next_pose(curr_pose_name)
+            next_pose = class_to_index[next_pose_name]
 
             print(f"Finished {classes[curr_pose]}, next pose is {classes[next_pose]}")
             timer = threading.Timer(10, switch_pose, args=[next_pose])
