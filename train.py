@@ -99,6 +99,11 @@ def train(model, num_epochs, train_loader, val_loader, test_loader, loss_func=nn
     for i in range(num_epochs):
         print(f'Epoch {i+1}/{num_epochs}')
 
+        if i == 12:
+            print("Switching learning rate")
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = 1e-4
+
         model.train()
         running_loss = 0.0
         for inputs, labels in tqdm(train_loader):

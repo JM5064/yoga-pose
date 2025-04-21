@@ -14,7 +14,7 @@ def get_next_pose(curr_pose: int) -> int:
     return random.randint(0, 11)
 
 
-def achieved_pose(target_pose: int, detected_poses: list[int], recent_poses: deque, threshold: int):
+def achieved_pose(target_pose: int, detected_poses: list[int], recent_poses: deque, threshold: int) -> bool:
     detected = False
     for pose in detected_poses:
         if pose == target_pose:
@@ -60,7 +60,7 @@ def get_topk_predictions(model, image, k, transform, device):
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = models.mobilenet_v2()
-    model_path = "models/mobilenet_15_dataset16.pt"
+    model_path = "models/mobilenet_16_1.5e-3_e-4_nobal.pt"
     load_model(model, model_path, device, 12)
 
     transform = transforms.Compose([
@@ -96,18 +96,18 @@ if __name__ == "__main__":
         start = time.time()
 
         ret, frame = cap.read()
+        cv2.imshow('Yoga Pose', frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        end = time.time()
+        total_time += end - start
+        total_frames += 1
 
         # do model inference once every 10 frames
         if counter != 10:
             counter += 1
-            cv2.imshow('Yoga Pose', frame)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-            end = time.time()
-            total_time += end - start
-            total_frames += 1
             continue
         else:
             counter = 0
@@ -126,15 +126,6 @@ if __name__ == "__main__":
             waiting = True
         
         print(classes[curr_pose], " | " , classes[predicted_poses[0]], " | " , classes[predicted_poses[1]])
-
-        cv2.imshow('Yoga Pose', frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-        end = time.time()
-        total_time += end - start
-        total_frames += 1
 
     cap.release()
     cv2.destroyAllWindows()
