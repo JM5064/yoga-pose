@@ -111,6 +111,14 @@ if __name__ == "__main__":
         start = time.time()
 
         ret, frame = cap.read()
+
+        cv2.putText(frame, f'Target: {classes[curr_pose]}', (40, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, 
+            (255, 255, 255), 5, cv2.LINE_AA)      
+
+        if waiting:
+            cv2.rectangle(frame, (0, 0), (frame.shape[1], frame.shape[0]), (0, 255, 0),
+                10, cv2.LINE_AA)
+
         cv2.imshow('Yoga Pose', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
