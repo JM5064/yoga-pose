@@ -149,36 +149,3 @@ def train(model, num_epochs, train_loader, val_loader, test_loader, loss_func=nn
     test_logfile = open(runs_dir + "/" + time + "/test_metrics.txt", "a")
     log_results(test_logfile, metrics)
 
-
-if __name__ == "__main__":
-    random.seed(0)
-
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                            std=[0.229, 0.224, 0.225]),
-    ])
-
-    train_dataset = datasets.ImageFolder('./data/dataset/train', transform=transform)
-    val_dataset = datasets.ImageFolder('./data/dataset/val', transform=transform)
-    test_dataset = datasets.ImageFolder('./data/dataset/test', transform=transform)
-
-    batch_size = 32
-
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False ,num_workers=2)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False ,num_workers=2)
-    
-
-    model = ConvNeXt(layer_distribution=[3,3,9,3], num_classes=81)
-    model = to_device(model)
-    adamW_params = {
-        "lr": 1e-3,
-        "weight_decay": 1e-2,
-        "betas": (0.9, 0.999),
-        "eps": 1e-8
-    }
-
-    train(model, num_epochs=1, train_loader=train_loader, val_loader=val_loader, test_loader=test_loader, optimizer_params=adamW_params)
-    torch.save(model.state_dict(), 'model.pth')
