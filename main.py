@@ -22,10 +22,6 @@ while selected_mode not in valid_modes:
 pose_manager = PoseRecommender(mode=selected_mode)
 
 
-def get_next_pose(curr_pose: int) -> int:
-    return random.randint(0, 11)
-
-
 def achieved_pose(target_pose: int, detected_poses: list[int], recent_poses: deque, threshold: int) -> bool:
     detected = False
     for pose in detected_poses:
@@ -93,7 +89,7 @@ if __name__ == "__main__":
     total_time = 0
     total_frames = 0
 
-    curr_pose = 1
+    curr_pose = class_to_index[pose_manager.get_next_pose("Boat Pose")]
     recent_poses = deque()
     waiting = False
     
